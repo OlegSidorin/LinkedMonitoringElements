@@ -6,15 +6,67 @@
              xmlns:local="clr-namespace:LinkedMonitoringElements"
              mc:Ignorable="d" 
              Title="Title"
-             Height="300" Width="400">
+             Height="300" Width="598.01">
     <Grid>
-        <StackPanel Orientation="Horizontal" Margin="10,10,10,10">
-            <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Family Name: " VerticalAlignment="Top"/>
-            <TextBlock x:Name="textBlock_FamilyName" 
-                     HorizontalAlignment="Left" 
-                     Margin="10,0,10,0" 
-                     TextWrapping="Wrap" 
-                     VerticalAlignment="Top"/>
-        </StackPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" />
+
+            <ColumnDefinition Width="10" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="10" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="textBlock_FamilyName" 
+                   Grid.Column="1" Grid.Row="1"
+                   HorizontalAlignment="Left" 
+                   Margin="5,0,0,0" 
+                   Text="familyName"
+                   TextWrapping="Wrap" 
+                   VerticalAlignment="Top"/>
+        <TextBlock x:Name="textBlock_FamilyNameLinked" 
+                   Grid.Column="3" Grid.Row="1"
+                   HorizontalAlignment="Left" 
+                   Margin="5,0,0,0" 
+                   Text="familyNameLinked"
+                   TextWrapping="Wrap" 
+                   VerticalAlignment="Top"/>
+        <ListView x:Name="listViewParameters"
+                  Grid.Column="1" Grid.Row="2"
+                  Margin="0,0,10,0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Header="Параметр"  />
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Value}" Header="Значение"  />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ListView x:Name="listViewParametersLinked"
+                  Grid.Column="3" Grid.Row="2"
+                  Margin="0,0,10,0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Header="Параметр"  />
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Value}" Header="Значение"  />
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Window>

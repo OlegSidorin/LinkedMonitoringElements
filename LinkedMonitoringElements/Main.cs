@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using Autodesk.Revit.Attributes;
 using System;
 using Autodesk.Revit.DB.Events;
+using System.Collections.ObjectModel;
 
 namespace LinkedMonitoringElements
 {
@@ -41,5 +42,14 @@ namespace LinkedMonitoringElements
             return Result.Succeeded;
         }
 
+    }
+    class ParameterInFamily
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

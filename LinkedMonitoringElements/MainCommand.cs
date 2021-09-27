@@ -31,7 +31,7 @@ namespace LinkedMonitoringElements
             {
                 selectedIds.Add(reference.ElementId);
             };
-
+            var familyInstanceLeft = doc.GetElement(references[0].ElementId);
             //ICollection<Autodesk.Revit.DB.ElementId> selectedIds = uidoc.Selection.GetElementIds();
             string str = "";
             XYZ xyz = new XYZ();
@@ -73,9 +73,49 @@ namespace LinkedMonitoringElements
             //{
             //    str += t.Name;
             //}
-            str += "\n------";
-            str += GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
-            mainCommandWindow.textBlock_FamilyName.Text = str;
+
+            str += "\n------\n";
+            ElementId idLinkedElement = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
+            str += idLinkedElement.ToString();
+            FamilyInstance fiLinkedElement = (FamilyInstance)linkedDocument.GetElement(idLinkedElement);
+            ObservableCollection<ParameterInFamily> collectionLeft = new ObservableCollection<ParameterInFamily>();
+            ParameterMap parametersMapLeft = familyInstanceLeft.ParametersMap;
+            foreach (Parameter p in parametersMapLeft)
+            {
+                string pname = p.Definition.Name;
+                if (pname.Contains("ADSK"))
+                {
+                    ParameterInFamily pif = new ParameterInFamily()
+                    {
+                        Name = p.Definition.Name,
+                        Value = p.AsValueString()
+                    };
+                    collectionLeft.Add(pif);
+                }
+                
+                //str += $"\n{p.Definition.Name} : {p.AsValueString()}, {p.AsDouble()}";
+            }
+            ObservableCollection<ParameterInFamily> collectionRight = new ObservableCollection<ParameterInFamily>();
+            ParameterMap parametersMap = fiLinkedElement.ParametersMap;
+            foreach (Parameter p in parametersMap)
+            {
+                string pname = p.Definition.Name;
+                if (pname.Contains("ADSK"))
+                {
+                    ParameterInFamily pif = new ParameterInFamily()
+                    {
+                        Name = p.Definition.Name,
+                        Value = p.AsValueString()
+                    };
+                    collectionRight.Add(pif);
+                }
+
+                //str += $"\n{p.Definition.Name} : {p.AsValueString()}, {p.AsDouble()}";
+            }
+            mainCommandWindow.textBlock_FamilyName.Text = $"here {familyInstanceLeft.Name}";
+            mainCommandWindow.textBlock_FamilyNameLinked.Text = $"in ({linkedDocument.Title})";
+            mainCommandWindow.listViewParameters.ItemsSource = collectionLeft;
+            mainCommandWindow.listViewParametersLinked.ItemsSource = collectionRight;
             mainCommandWindow.Show();
             //MessageBox.Show(str);
             return Result.Succeeded;
@@ -110,5 +150,7 @@ namespace LinkedMonitoringElements
             }
             return elementId;
         }
+        
+
     }
 }
