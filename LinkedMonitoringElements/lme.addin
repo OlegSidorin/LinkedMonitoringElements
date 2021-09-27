@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Just for fun</Name>
+		<Assembly>C:\Users\o.sidorin\source\repos\LinkedMonitoringElements\LinkedMonitoringElements\bin\Debug\LinkedMonitoringElements.dll</Assembly>
+		<AddInId>578209B8-BB0D-411D-B394-0A76DD8B2BBD</AddInId>
+		<FullClassName>BatchAddingParameters.Main</FullClassName>
+		<VendorId>M1</VendorId>
+		<VendorDescription>Такая фирма, что еще сказать..</VendorDescription>
+	</AddIn>
+</RevitAddIns>
