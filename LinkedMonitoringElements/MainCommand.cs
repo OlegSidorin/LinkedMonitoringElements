@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 using System.Windows.Forms;
 using System.Collections.ObjectModel;
+using static LinkedMonitoringElements.CM;
 
 namespace LinkedMonitoringElements
 {
@@ -23,134 +24,53 @@ namespace LinkedMonitoringElements
             Document doc = commandData.Application.ActiveUIDocument.Document;
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             MainCommandWindow mainCommandWindow = new MainCommandWindow();
-            // Get the element selection of current document.
-            //Autodesk.Revit.UI.Selection.Selection selection = uidoc.Selection;
-            ICollection<Autodesk.Revit.DB.ElementId> selectedIds = new Collection<ElementId>();
-            IList<Reference> references = uidoc.Selection.PickObjects(Autodesk.Revit.UI.Selection.ObjectType.Element);
-            foreach (var reference in references)
-            {
-                selectedIds.Add(reference.ElementId);
-            };
-            var familyInstanceLeft = doc.GetElement(references[0].ElementId);
-            //ICollection<Autodesk.Revit.DB.ElementId> selectedIds = uidoc.Selection.GetElementIds();
-            string str = "";
-            XYZ xyz = new XYZ();
-            string familyName = "";
-            Document linkedDocument = null;
-            if (selectedIds.Count > 0)
-            {
-                foreach (var eid in selectedIds)
-                {
-                    if (doc.GetElement(eid).IsMonitoringLinkElement())
-                    {
-                        var elem = doc.GetElement(eid) as FamilyInstance;
-                        LocationPoint lp = elem.Location as LocationPoint;
-                        xyz = lp.Point;
-                        familyName = elem.Name;
-                        IList<ElementId> eIds = elem.GetMonitoredLinkElementIds();
-                        foreach (var e in eIds)
-                        {
-                            RevitLinkInstance revitLinkInstance = doc.GetElement(e) as RevitLinkInstance;
-                            linkedDocument = revitLinkInstance.GetLinkDocument();
-                        }
-                        str += familyName + "\n" + linkedDocument.Title + "\n" + xyz.ToString();
-                    }  
-                }
-            }
-
-            //DocumentSet docSet = commandData.Application.Application.Documents;
-            //foreach(Document d in docSet)
+            
+            //string familyName = "";
+            //var reference = uidoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element);
+            //var familyInstance_Target = (FamilyInstance)doc.GetElement(reference); 
+            //XYZ xyz = new XYZ();
+            //Document linkedDocument = null;
+            //if (familyInstance_Target.IsMonitoringLinkElement())
             //{
-            //    str += "\n" + d.Title;
+            //    LocationPoint locationPoint = (LocationPoint)familyInstance_Target.Location;
+            //    xyz = locationPoint.Point;
+            //    familyName = familyInstance_Target.Name;
+            //    IList<ElementId> linkElementsIds = familyInstance_Target.GetMonitoredLinkElementIds();
+            //    foreach (var elementId in linkElementsIds)
+            //    {
+            //        RevitLinkInstance revitLinkInstance = (RevitLinkInstance)doc.GetElement(elementId);
+            //        linkedDocument = revitLinkInstance.GetLinkDocument();
+            //    }
             //}
-
-            //IList<Element> elementsRVTLinks = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_RvtLinks).WhereElementIsNotElementType().ToElements();
-
-
-            //var ff = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_RvtLinks).WhereElementIsNotElementType().ToElements();
-
-            //foreach(var t in ff)
-            //{
-            //    str += t.Name;
-            //}
-
-            str += "\n------\n";
-            ElementId idLinkedElement = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
-            str += idLinkedElement.ToString();
-            FamilyInstance fiLinkedElement = (FamilyInstance)linkedDocument.GetElement(idLinkedElement);
-            ObservableCollection<ParameterInFamily> collectionLeft = new ObservableCollection<ParameterInFamily>();
-            ParameterMap parametersMapLeft = familyInstanceLeft.ParametersMap;
-            foreach (Parameter p in parametersMapLeft)
+            Collection<FamilyInstanceViewModel> familyInstancesSource = new Collection<FamilyInstanceViewModel>();
+            List<FamilyInstance> familyInstances = GetMonitoringFamilyInstances(doc);
+            foreach (var fi in familyInstances)
             {
-                string pname = p.Definition.Name;
-                if (pname.Contains("ADSK"))
+                var fivm = new FamilyInstanceViewModel()
                 {
-                    ParameterInFamily pif = new ParameterInFamily()
+                    NameInstance = fi.Name,
+                    NameFamily = fi.Symbol.FamilyName
+                };
+                bool instanceIsIn = false;
+                foreach (var item in familyInstancesSource)
+                {
+                    string name = item.NameInstance;
+                    if (name == fivm.NameInstance)
                     {
-                        Name = p.Definition.Name,
-                        Value = p.AsValueString()
-                    };
-                    collectionLeft.Add(pif);
-                }
-                
-                //str += $"\n{p.Definition.Name} : {p.AsValueString()}, {p.AsDouble()}";
-            }
-            ObservableCollection<ParameterInFamily> collectionRight = new ObservableCollection<ParameterInFamily>();
-            ParameterMap parametersMap = fiLinkedElement.ParametersMap;
-            foreach (Parameter p in parametersMap)
-            {
-                string pname = p.Definition.Name;
-                if (pname.Contains("ADSK"))
-                {
-                    ParameterInFamily pif = new ParameterInFamily()
-                    {
-                        Name = p.Definition.Name,
-                        Value = p.AsValueString()
-                    };
-                    collectionRight.Add(pif);
-                }
-
-                //str += $"\n{p.Definition.Name} : {p.AsValueString()}, {p.AsDouble()}";
-            }
-            mainCommandWindow.textBlock_FamilyName.Text = $"here {familyInstanceLeft.Name}";
-            mainCommandWindow.textBlock_FamilyNameLinked.Text = $"in ({linkedDocument.Title})";
-            mainCommandWindow.listViewParameters.ItemsSource = collectionLeft;
-            mainCommandWindow.listViewParametersLinked.ItemsSource = collectionRight;
-            mainCommandWindow.Show();
-            //MessageBox.Show(str);
-            return Result.Succeeded;
-        }
-        ElementId GetElementId_OfMonitoredElement(Document linkedDoc, string FamilyName, XYZ xyz)
-        {
-            IList<Element> elements = new FilteredElementCollector(linkedDoc).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType().ToElements();
-            ElementId elementId = null;
-            List<FamilyInstance> fiList = new List<FamilyInstance>();
-            foreach (var element in elements)
-            {
-                var fi = element as FamilyInstance;
-                if (element.Name == FamilyName)
-                {
-                    fiList.Add(fi);
-                }
-            }
-            foreach (var fi in fiList)
-            {
-                LocationPoint lp = fi.Location as LocationPoint;
-                var point = lp.Point;
-                if (point.X == xyz.X)
-                {
-                    if (point.Y == xyz.Y)
-                    {
-                        if (point.Z == xyz.Z)
-                        {
-                            elementId = fi.Id;
-                        }
+                        instanceIsIn = true;
                     }
                 }
+                if (!instanceIsIn)
+                    familyInstancesSource.Add(fivm);
             }
-            return elementId;
-        }
-        
+            mainCommandWindow.listViewFamilyInstances.ItemsSource = familyInstancesSource;
 
+            //ElementId LinkedElementId = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
+            //FamilyInstance familyInstance_Link = (FamilyInstance)linkedDocument.GetElement(LinkedElementId);
+            mainCommandWindow._CommandData = commandData;
+            mainCommandWindow.Show();
+            return Result.Succeeded;
+        }
     }
+
 }

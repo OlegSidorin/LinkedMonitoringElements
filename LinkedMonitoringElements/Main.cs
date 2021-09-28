@@ -43,13 +43,28 @@ namespace LinkedMonitoringElements
         }
 
     }
-    class ParameterInFamily
+    public class ParameterInFamily
     {
         public string Name { get; set; }
         public string Value { get; set; }
+        public string Type { get; set; }
+        public ParameterInFamily()
+        {
+
+        }
         public override string ToString()
         {
             return Name;
         }
     }
+    public class FamilyInstanceViewModel
+    {
+        public string NameInstance { get; set; }
+        public string NameFamily { get; set; }
+        public FamilyInstanceViewModel()
+        {
+
+        }
+    }
+
 }
