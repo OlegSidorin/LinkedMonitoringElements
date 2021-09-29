@@ -12,12 +12,14 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 using System.Windows.Forms;
 using System.Collections.ObjectModel;
 using static LinkedMonitoringElements.CM;
+using System.Collections.Specialized;
 
 namespace LinkedMonitoringElements
 {
     [Transaction(TransactionMode.Manual), Regeneration(RegenerationOption.Manual)]
     class MainCommand : IExternalCommand
     {
+        public MainCommandWindow MainCommandWindow { get; set; }
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Application app = commandData.Application.Application;
@@ -42,35 +44,21 @@ namespace LinkedMonitoringElements
             //        linkedDocument = revitLinkInstance.GetLinkDocument();
             //    }
             //}
-            Collection<FamilyInstanceViewModel> familyInstancesSource = new Collection<FamilyInstanceViewModel>();
-            List<FamilyInstance> familyInstances = GetMonitoringFamilyInstances(doc);
-            foreach (var fi in familyInstances)
-            {
-                var fivm = new FamilyInstanceViewModel()
-                {
-                    NameInstance = fi.Name,
-                    NameFamily = fi.Symbol.FamilyName
-                };
-                bool instanceIsIn = false;
-                foreach (var item in familyInstancesSource)
-                {
-                    string name = item.NameInstance;
-                    if (name == fivm.NameInstance)
-                    {
-                        instanceIsIn = true;
-                    }
-                }
-                if (!instanceIsIn)
-                    familyInstancesSource.Add(fivm);
-            }
-            mainCommandWindow.listViewFamilyInstances.ItemsSource = familyInstancesSource;
+            
+            
+            
+            mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc));
 
             //ElementId LinkedElementId = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
             //FamilyInstance familyInstance_Link = (FamilyInstance)linkedDocument.GetElement(LinkedElementId);
             mainCommandWindow._CommandData = commandData;
+            MainCommandWindow = mainCommandWindow;
+            
             mainCommandWindow.Show();
             return Result.Succeeded;
         }
+
+
     }
 
 }

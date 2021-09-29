@@ -32,7 +32,6 @@ namespace LinkedMonitoringElements
         public MainCommandWindow()
         {
             InitializeComponent();
-            this.DataContext = this;
             ButtonArrowLeftClick_ExternalEventHandler = new ButtonArrowLeftClick_ExternalEventHandler();
             ButtonArrowLeftClick_ExternalEvent = ExternalEvent.Create(ButtonArrowLeftClick_ExternalEventHandler);
             
@@ -43,20 +42,102 @@ namespace LinkedMonitoringElements
             Close();
         }
 
-        private void buttonLeftClick(object sender, RoutedEventArgs e)
+        private void buttonApplyClick(object sender, RoutedEventArgs e)
         {
-            ButtonArrowLeftClick_ExternalEventHandler._WindowMain = this;
-            ButtonArrowLeftClick_ExternalEventHandler._CommandData = _CommandData;
-            ButtonArrowLeftClick_ExternalEvent.Raise();
+            var familyInstanceViewModel = (FamilyInstanceViewModel)listViewFamilyInstances.SelectedItem;
+            
+            if (familyInstanceViewModel != null)
+            {
+                ButtonArrowLeftClick_ExternalEventHandler._CommandData = _CommandData;
+                ButtonArrowLeftClick_ExternalEventHandler._InstanceViewModel = familyInstanceViewModel; 
+                ButtonArrowLeftClick_ExternalEvent.Raise();
+
+            }
+        }
+
+        private void ListViewItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            var lv = sender as ListView;
+            var lvi = lv.SelectedItem as FamilyInstanceViewModel;
+            string NameInstance = lvi.NameInstance;
+            string NameFamily = lvi.NameFamily;
+            //MessageBox.Show($"{NameFamily} + {NameInstance}");
+            var familyInstance = GetMonitoredFamilyInstances(_CommandData.Application.ActiveUIDocument.Document, NameInstance, NameFamily).First();
+            if (familyInstance != null)
+            {
+                var parametersSource = GetParametersCollectionFromFamilyInstance(familyInstance);
+                listViewParameters.ItemsSource = parametersSource;
+            }
         }
     }
     public class ButtonArrowLeftClick_ExternalEventHandler : IExternalEventHandler
     {
         public MainCommandWindow _WindowMain;
         public ExternalCommandData _CommandData;
+        public FamilyInstanceViewModel _InstanceViewModel;
         public void Execute(UIApplication app)
         {
+            Document doc = _CommandData.Application.ActiveUIDocument.Document;
+            string nameInstance = _InstanceViewModel.NameInstance;
+            string nameFamily = _InstanceViewModel.NameFamily;
+            var familyInstances = GetMonitoredFamilyInstances(_CommandData.Application.ActiveUIDocument.Document, nameInstance, nameFamily);
+            //MessageBox.Show($"{nameFamily} + {nameInstance}");
+            var i = 0;
+            foreach (FamilyInstance familyInstance in familyInstances)
+            {
+                RevitLinkInstance revitLinkInstance = (RevitLinkInstance)doc.GetElement(familyInstance.GetMonitoredLinkElementIds().First());
+                Document linkedDoc = revitLinkInstance.GetLinkDocument();
+                //MessageBox.Show(linkedDoc.Title);
+                XYZ xyz = ((LocationPoint)familyInstance.Location).Point;
+                FamilyInstance familyInstanceInLinkedDocument = (FamilyInstance)linkedDoc.GetElement(GetElementId_OfMonitoredElement(linkedDoc, nameInstance, nameFamily, xyz));
+                //MessageBox.Show(familyInstanceInLinkedDocument.Id.ToString());
+                Collection<ParameterInFamily> pCollection = GetParametersCollectionFromFamilyInstance(familyInstance);
+                
+                using (Transaction t = new Transaction(doc, "apply"))
+                {
+                    t.Start();
+                    foreach (ParameterInFamily parameterInFamily in pCollection)
+                    {
+                        if (parameterInFamily.Type == "Double")
+                        {
+                            double parValue = GetParameterInLinkedFamilyInstanceAsDouble(familyInstanceInLinkedDocument, parameterInFamily.Name);
+                            Parameter parameter = familyInstance.LookupParameter(parameterInFamily.Name);
+                            try
+                            {
+                                parameter.Set(parValue);
 
+                            }
+                            catch { }
+                        }
+                        if (parameterInFamily.Type == "ElementId")
+                        {
+                            double parValue = GetParameterInLinkedFamilyInstanceAsDouble(familyInstanceInLinkedDocument, parameterInFamily.Name);
+                            Parameter parameter = familyInstance.LookupParameter(parameterInFamily.Name);
+                            try
+                            {
+                                parameter.Set(parValue);
+
+                            }
+                            catch { } 
+                        }
+                        if (parameterInFamily.Type == "String")
+                        {
+                            string parValue = GetParameterInLinkedFamilyInstanceAsString(familyInstanceInLinkedDocument, parameterInFamily.Name);
+                            Parameter parameter = familyInstance.LookupParameter(parameterInFamily.Name);
+                            try
+                            {
+                                parameter.Set(parValue);
+
+                            }
+                            catch { }
+                        }
+                        
+                    }
+                    t.Commit();
+                }
+                i++;
+            }
+            MessageBox.Show($"Значения параметров добавлены в {i} экземплярах семейств");
             return;
         }
 
@@ -67,26 +148,6 @@ namespace LinkedMonitoringElements
     }
     class CM
     {
-        public static void SetParameterInFamilyInstanceAsDouble(Document doc, FamilyInstance familyInstance, string parameterName, double valueDouble)
-        {
-            Parameter parameter = familyInstance.LookupParameter(parameterName);
-            using (Transaction t = new Transaction(doc,"apply"))
-            {
-                t.Start();
-                parameter.Set(valueDouble);
-                t.Commit();
-            }
-        }
-        public static void SetParameterInFamilyInstanceAsString(Document doc, FamilyInstance familyInstance, string parameterName, string valueString)
-        {
-            Parameter parameter = familyInstance.LookupParameter(parameterName);
-            using (Transaction t = new Transaction(doc, "apply"))
-            {
-                t.Start();
-                parameter.Set(valueString);
-                t.Commit();
-            }
-        }
         public static double GetParameterInLinkedFamilyInstanceAsDouble(FamilyInstance linkedFamilyInstance, string parameterName)
         {
             Parameter parameter = linkedFamilyInstance.LookupParameter(parameterName);
@@ -97,7 +158,7 @@ namespace LinkedMonitoringElements
             Parameter parameter = linkedFamilyInstance.LookupParameter(parameterName);
             return parameter.AsString();
         }
-        public static ElementId GetElementId_OfMonitoredElement(Document linkedDoc, string FamilyName, XYZ xyz)
+        public static ElementId GetElementId_OfMonitoredElement(Document linkedDoc, string InstanceName, string FamilyName, XYZ xyz)
         {
             IList<Element> elements = new FilteredElementCollector(linkedDoc).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType().ToElements();
             ElementId elementId = null;
@@ -105,7 +166,7 @@ namespace LinkedMonitoringElements
             foreach (var element in elements)
             {
                 var fi = element as FamilyInstance;
-                if (element.Name == FamilyName)
+                if (fi.Name == InstanceName && fi.Symbol.FamilyName == FamilyName)
                 {
                     fiList.Add(fi);
                 }
@@ -133,15 +194,16 @@ namespace LinkedMonitoringElements
             Element element = uidoc.Document.GetElement(reference);
             return (FamilyInstance)element;
         }
-        public static ObservableCollection<ParameterInFamily> GetCollectionFromFamilyInstance(FamilyInstance familyInstance)
+        public static Collection<ParameterInFamily> GetParametersCollectionFromFamilyInstance(FamilyInstance familyInstance)
         {
-            var collection = new ObservableCollection<ParameterInFamily>();
+            var collection = new Collection<ParameterInFamily>();
             ParameterMap parametersMap = familyInstance.ParametersMap;
             foreach (Parameter p in parametersMap)
             {
-                string pname = p.Definition.Name;
-                if (pname.Contains("ADSK"))
+                if (p.UserModifiable && p.IsShared && !p.IsReadOnly)
                 {
+                    string pname = p.Definition.Name;
+
                     if (p.StorageType == StorageType.Double)
                     {
                         ParameterInFamily pif = new ParameterInFamily()
@@ -173,13 +235,60 @@ namespace LinkedMonitoringElements
                         collection.Add(pif);
                     }
                 }
+                
             }
             return collection;
         }
         public static List<FamilyInstance> GetMonitoringFamilyInstances(Document doc)
         {
             var fi = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType().Cast<FamilyInstance>().Where(x => x.IsMonitoringLinkElement()).ToList();
+
             return fi;
+        }
+        public static Collection<FamilyInstanceViewModel> GetCollectionForSource(List<FamilyInstance> familyInstances)
+        {
+            Collection<FamilyInstanceViewModel> familyInstancesSource = new Collection<FamilyInstanceViewModel>();
+            foreach (var fi in familyInstances)
+            {
+                var fivm = new FamilyInstanceViewModel()
+                {
+                    NameInstance = fi.Name,
+                    NameFamily = fi.Symbol.FamilyName,
+                };
+                bool instanceIsIn = false;
+                foreach (var item in familyInstancesSource)
+                {
+                    string nameInstance = item.NameInstance;
+                    string nameFamily = item.NameFamily;
+                    if (nameInstance == fivm.NameInstance && nameFamily == fivm.NameFamily)
+                    {
+                        instanceIsIn = true;
+                    }
+                }
+                if (!instanceIsIn)
+                    familyInstancesSource.Add(fivm);
+            }
+            foreach (var fivm in familyInstancesSource)
+            {
+                int count = 0;
+                foreach (var fi in familyInstances)
+                {
+                    if (fivm.NameInstance == fi.Name && fivm.NameFamily == fi.Symbol.FamilyName)
+                        count += 1;
+                }
+                fivm.Count = count.ToString();
+            }
+            return familyInstancesSource;
+        }
+        public static List<FamilyInstance> GetMonitoredFamilyInstances(Document doc, string nameInstance, string nameFamily)
+        {
+            var outputList = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .WhereElementIsNotElementType().Cast<FamilyInstance>()
+                .Where(x => x.Name == nameInstance && x.Symbol.FamilyName == nameFamily)
+                .Where(x => x.IsMonitoringLinkElement())
+                .ToList();
+            return outputList;
         }
 
     }

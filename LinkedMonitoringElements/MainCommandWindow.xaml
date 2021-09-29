@@ -6,22 +6,24 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="10" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
             <ColumnDefinition Width="40" />
             <ColumnDefinition Width="*" />
-
             <ColumnDefinition Width="10" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="30" />
+            <RowDefinition/>
             <RowDefinition Height="10" />
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="20" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="50" />
             <RowDefinition Height="10" />
         </Grid.RowDefinitions>
+        <Label Content="Наименования экземпляров семейств с мониторингом:" Grid.Row="0" Grid.Column="1" FontSize="14" Grid.ColumnSpan="2" Margin="0,0,0,0"/>
         <ListView x:Name="listViewFamilyInstances"
                   Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3"
+                  PreviewMouseLeftButtonUp="ListViewItem_Click"
                   Margin="0,0,0,0">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
@@ -30,49 +32,39 @@
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=NameInstance}" Header="Наименование типоразмера"  />
                     <GridViewColumn DisplayMemberBinding="{Binding Path=NameFamily}" Header="Наименование семейства"  />
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=NameInstance}" Header="Наименование экземпляра"  />
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Count}" Header="Количество"  />
                 </GridView>
             </ListView.View>
-
         </ListView>
-        <StackPanel Grid.Column="2" Grid.Row="3" Orientation="Vertical" Margin="0,0,0,0" Grid.RowSpan="1" HorizontalAlignment="Center">
-            <Button x:Name="button_Left" Click="buttonLeftClick"
-                   Width="35" Height="35"
-                   HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
-                    ToolTip="Переносит значение параметра из семейства в связном документе в тот же параметр в семейство в данном документе"
-                   Margin="0,0,0,0">
-                <Image Source="C:\Users\o.sidorin\source\repos\LinkedMonitoringElements\LinkedMonitoringElements\res\arrowleft.png"/>
-            </Button>
-            <Button x:Name="button_Right" 
-                   Width="35" Height="35"
-                   HorizontalAlignment="Left" Background="Transparent" BorderThickness="0"
-                    ToolTip="Переносит значение параметра из семейства в данном документе в тот же параметр в семейство в связный документе"
-                   Margin="0,20,0,0">
-                <Image Source="C:\Users\o.sidorin\source\repos\LinkedMonitoringElements\LinkedMonitoringElements\res\arrowright.png"/>
-            </Button>
-        </StackPanel>
-        <Button x:Name="button_Close"  Click="buttonCloseClick"
-                Grid.Column="3" Grid.Row="4"
-                   Width="80" Height="40"
-                   HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
-                   Margin="0,5.333,15.333,4.667">
-            <Image Source="C:\Users\o.sidorin\source\repos\LinkedMonitoringElements\LinkedMonitoringElements\res\close.png"/>
-        </Button>
-        <TextBlock x:Name="textBlock_FamilyName" 
-                   Grid.Column="1" Grid.Row="2"
-                   HorizontalAlignment="Left" 
-                   Margin="5,0,0,0" 
-                   Text="familyInstanceName"
-                   TextWrapping="Wrap" 
-                   VerticalAlignment="Top"/>
-        <TextBlock x:Name="textBlock_FamilyNameLinked" 
-                   Grid.Column="3" Grid.Row="2"
-                   HorizontalAlignment="Left" 
-                   Margin="5,0,0,0" 
-                   Text="familyInstanceNameLinked"
-                   TextWrapping="Wrap" 
-                   VerticalAlignment="Top"/>
+        <Label Content="Параметры в семействе: " Grid.Row="2" Grid.Column="1" FontSize="14" Grid.ColumnSpan="2" Margin="0,0,0,0"/>
+        <ListView x:Name="listViewParameters"
+                  Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3"
+                  Margin="0,0,0,0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Header="Наименование параметра"  />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button x:Name="buttonApply" Content="ПЕРЕНЕСТИ ЗНАЧЕНИЯ ПАРАМЕТРА"  Margin="2"
+                Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
+                Foreground="White" FontSize="20" Background="LightSkyBlue" Click="buttonApplyClick"/>
+        <Button x:Name="buttonClose" Content="ЗАКРЫТЬ"  Margin="2"
+                Grid.Row="5" Grid.Column="3" 
+                Foreground="White" FontSize="20" Background="LightSlateGray"
+                Click="buttonCloseClick"/>
+
+
+
+
+
 
     </Grid>
 </Window>
