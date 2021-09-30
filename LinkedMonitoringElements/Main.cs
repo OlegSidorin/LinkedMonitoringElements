@@ -67,5 +67,14 @@ namespace LinkedMonitoringElements
 
         }
     }
+    public class RVTLinkViewModel
+    {
+        public string Name { get; set; }
+        public Document Document { get; set; }
+        public RVTLinkViewModel()
+        {
+
+        }
+    }
 
 }

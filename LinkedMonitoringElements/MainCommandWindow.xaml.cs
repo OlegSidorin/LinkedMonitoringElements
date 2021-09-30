@@ -34,7 +34,18 @@ namespace LinkedMonitoringElements
             InitializeComponent();
             ButtonArrowLeftClick_ExternalEventHandler = new ButtonArrowLeftClick_ExternalEventHandler();
             ButtonArrowLeftClick_ExternalEvent = ExternalEvent.Create(ButtonArrowLeftClick_ExternalEventHandler);
-            
+
+            comboBoxRVTLink.SelectionChanged += ComboBoxRVTLink_SelectionChanged;
+        }
+
+        private void ComboBoxRVTLink_SelectionChanged(object sender, EventArgs e)
+        {
+            var comboBox = sender as System.Windows.Controls.ComboBox;
+            Document document = _CommandData.Application.ActiveUIDocument.Document;
+            Document linkedDocument = ((RVTLinkViewModel)comboBoxRVTLink.SelectedItem).Document;
+            var uio = GetMonitoringFamilyInstances(document, linkedDocument);
+
+
         }
 
         private void buttonCloseClick(object sender, RoutedEventArgs e)
@@ -81,6 +92,7 @@ namespace LinkedMonitoringElements
             string nameInstance = _InstanceViewModel.NameInstance;
             string nameFamily = _InstanceViewModel.NameFamily;
             var familyInstances = GetMonitoredFamilyInstances(_CommandData.Application.ActiveUIDocument.Document, nameInstance, nameFamily);
+
             //MessageBox.Show($"{nameFamily} + {nameInstance}");
             var i = 0;
             foreach (FamilyInstance familyInstance in familyInstances)
@@ -241,9 +253,36 @@ namespace LinkedMonitoringElements
         }
         public static List<FamilyInstance> GetMonitoringFamilyInstances(Document doc)
         {
-            var fi = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType().Cast<FamilyInstance>().Where(x => x.IsMonitoringLinkElement()).ToList();
+            var outputAll = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .WhereElementIsNotElementType()
+                .Cast<FamilyInstance>()
+                .Where(x => x.IsMonitoringLinkElement())
+                .ToList();
 
-            return fi;
+            return outputAll;
+        }
+        public static List<FamilyInstance> GetMonitoringFamilyInstances(Document doc, Document linkDoc)
+        {
+            var outputAll = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .WhereElementIsNotElementType()
+                .Cast<FamilyInstance>()
+                .Where(x => x.IsMonitoringLinkElement())
+                .ToList();
+
+            var output = new List<FamilyInstance>();
+            foreach (FamilyInstance fi in outputAll)
+            {
+                RevitLinkInstance rvtInstance = (RevitLinkInstance)doc.GetElement(fi.GetMonitoredLinkElementIds().First());
+
+                if (rvtInstance.GetLinkDocument().Title == linkDoc.Title)
+                {
+                    output.Add(fi);
+                }
+            }
+
+            return output;
         }
         public static Collection<FamilyInstanceViewModel> GetCollectionForSource(List<FamilyInstance> familyInstances)
         {
@@ -290,6 +329,25 @@ namespace LinkedMonitoringElements
                 .ToList();
             return outputList;
         }
-
+        public static List<FamilyInstance> GetMonitoredFamilyInstances(Document doc, Document linkDoc, string nameInstance, string nameFamily)
+        {
+            var outputList = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .WhereElementIsNotElementType().Cast<FamilyInstance>()
+                .Where(x => x.Name == nameInstance && x.Symbol.FamilyName == nameFamily)
+                .Where(x => x.IsMonitoringLinkElement())
+                .ToList();
+            var output = new List<FamilyInstance>();
+            foreach (FamilyInstance fi in outputList)
+            {
+                RevitLinkInstance rvtInstance = (RevitLinkInstance)doc.GetElement(fi.GetMonitoredLinkElementIds().First());
+                
+                if (rvtInstance.GetLinkDocument().Title == linkDoc.Title)
+                {
+                    output.Add(fi);
+                }
+            }
+            return output;
+        }
     }
 }

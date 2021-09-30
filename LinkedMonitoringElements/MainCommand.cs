@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Collections.ObjectModel;
 using static LinkedMonitoringElements.CM;
 using System.Collections.Specialized;
+using System.Linq;
 
 namespace LinkedMonitoringElements
 {
@@ -26,7 +27,7 @@ namespace LinkedMonitoringElements
             Document doc = commandData.Application.ActiveUIDocument.Document;
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             MainCommandWindow mainCommandWindow = new MainCommandWindow();
-            
+
             //string familyName = "";
             //var reference = uidoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element);
             //var familyInstance_Target = (FamilyInstance)doc.GetElement(reference); 
@@ -44,9 +45,21 @@ namespace LinkedMonitoringElements
             //        linkedDocument = revitLinkInstance.GetLinkDocument();
             //    }
             //}
-            
-            
-            
+
+            var rvtLinksList = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_RvtLinks).WhereElementIsNotElementType().ToList();
+            Collection<RVTLinkViewModel> comboBoxSource = new Collection<RVTLinkViewModel>();
+            foreach (RevitLinkInstance item in rvtLinksList)
+            {
+                var rvtLinkViewModel = new RVTLinkViewModel()
+                {
+                    Name = item.GetLinkDocument().Title,
+                    Document = item.GetLinkDocument()
+                };
+                comboBoxSource.Add(rvtLinkViewModel);
+            }
+            mainCommandWindow.comboBoxRVTLink.ItemsSource = comboBoxSource;
+
+
             mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc));
 
             //ElementId LinkedElementId = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
