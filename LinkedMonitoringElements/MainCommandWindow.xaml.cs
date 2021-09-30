@@ -153,7 +153,7 @@ namespace LinkedMonitoringElements
             }
             else if (_WindowMain.checkBox.IsChecked.Value)
             {
-                TaskDialog.Show("1", "All");
+                MessageBox.Show("1", "All");
             }
             
 
