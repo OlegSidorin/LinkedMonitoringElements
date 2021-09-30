@@ -63,7 +63,8 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <CheckBox Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3" VerticalContentAlignment="Center"
+        <CheckBox x:Name="checkBox" 
+                  Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3" VerticalContentAlignment="Center"
                   Margin="0" Content="Перенести параметры всех семейств из выбранной связи" />
         <Button x:Name="buttonApply" Content="ПЕРЕНЕСТИ ЗНАЧЕНИЯ ПАРАМЕТРА"  Margin="2"
                 Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"

@@ -27,7 +27,7 @@ namespace LinkedMonitoringElements
             Document doc = commandData.Application.ActiveUIDocument.Document;
             UIDocument uidoc = commandData.Application.ActiveUIDocument;
             MainCommandWindow mainCommandWindow = new MainCommandWindow();
-
+            mainCommandWindow._CommandData = commandData;
             //string familyName = "";
             //var reference = uidoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element);
             //var familyInstance_Target = (FamilyInstance)doc.GetElement(reference); 
@@ -47,6 +47,7 @@ namespace LinkedMonitoringElements
             //}
 
             var rvtLinksList = new FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_RvtLinks).WhereElementIsNotElementType().ToList();
+            
             Collection<RVTLinkViewModel> comboBoxSource = new Collection<RVTLinkViewModel>();
             foreach (RevitLinkInstance item in rvtLinksList)
             {
@@ -57,14 +58,20 @@ namespace LinkedMonitoringElements
                 };
                 comboBoxSource.Add(rvtLinkViewModel);
             }
+
             mainCommandWindow.comboBoxRVTLink.ItemsSource = comboBoxSource;
-
-
-            mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc));
+            if (comboBoxSource.Count != 0)
+            {
+                mainCommandWindow.comboBoxRVTLink.SelectedIndex = 0;
+                var rvtLinkViewModel = (RVTLinkViewModel)mainCommandWindow.comboBoxRVTLink.SelectedItem;
+                mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc, rvtLinkViewModel.Document));
+            }
+            mainCommandWindow.checkBox.IsChecked = true;
+            
 
             //ElementId LinkedElementId = GetElementId_OfMonitoredElement(linkedDocument, familyName, xyz);
             //FamilyInstance familyInstance_Link = (FamilyInstance)linkedDocument.GetElement(LinkedElementId);
-            mainCommandWindow._CommandData = commandData;
+            
             MainCommandWindow = mainCommandWindow;
             
             mainCommandWindow.Show();
