@@ -53,7 +53,8 @@ namespace LinkedMonitoringElements
             {
                 var rvtLinkViewModel = new RVTLinkViewModel()
                 {
-                    Name = item.GetLinkDocument().Title,
+                    Name = item.Name,
+                    RevitLinkInstance = item,
                     Document = item.GetLinkDocument()
                 };
                 comboBoxSource.Add(rvtLinkViewModel);
@@ -64,7 +65,7 @@ namespace LinkedMonitoringElements
             {
                 mainCommandWindow.comboBoxRVTLink.SelectedIndex = 0;
                 var rvtLinkViewModel = (RVTLinkViewModel)mainCommandWindow.comboBoxRVTLink.SelectedItem;
-                mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc, rvtLinkViewModel.Document));
+                mainCommandWindow.listViewFamilyInstances.ItemsSource = GetCollectionForSource(GetMonitoringFamilyInstances(doc, rvtLinkViewModel.RevitLinkInstance), rvtLinkViewModel.RevitLinkInstance);
             }
             mainCommandWindow.checkBox.IsChecked = true;
             

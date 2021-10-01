@@ -27,12 +27,12 @@ namespace LinkedMonitoringElements
             UserFolder = @"C:\Users\" + Environment.UserName;
             var MBtnData = new PushButtonData("MBtnData", "Передать\nзначения параметров", DllLocation, "LinkedMonitoringElements.MainCommand")
             {
-                ToolTipImage = new BitmapImage(new Uri(Path.GetDirectoryName(DllLocation) + "\\res\\main.png", UriKind.Absolute)),
+                ToolTipImage = new BitmapImage(new Uri(Path.GetDirectoryName(DllLocation) + "\\res\\sockets.png", UriKind.Absolute)),
                 //ToolTipImage = PngImageSource("BatchAddingParameters.res.bap-icon.png"),
                 ToolTip = "Позволяет передать значения параметров по экземпляру из связного докумета"
             };
             var TechBtn = techPanel.AddItem(MBtnData) as PushButton;
-            TechBtn.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(DllLocation) + "\\res\\main.png", UriKind.Absolute));
+            TechBtn.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(DllLocation) + "\\res\\sockets.png", UriKind.Absolute));
             //8TechBtn.LargeImage = PngImageSource("BatchAddingParameters.res.bap-icon.png");
 
             return Result.Succeeded;
@@ -62,6 +62,7 @@ namespace LinkedMonitoringElements
         public string NameInstance { get; set; }
         public string NameFamily { get; set; }
         public string Count { get; set; }
+        public RevitLinkInstance RevitLinkInstance { get; set; }
         public FamilyInstanceViewModel()
         {
 
@@ -70,6 +71,7 @@ namespace LinkedMonitoringElements
     public class RVTLinkViewModel
     {
         public string Name { get; set; }
+        public RevitLinkInstance RevitLinkInstance { get; set; }
         public Document Document { get; set; }
         public RVTLinkViewModel()
         {
