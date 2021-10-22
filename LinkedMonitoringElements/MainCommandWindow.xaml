@@ -1,7 +1,7 @@
 ﻿<Window x:Class="LinkedMonitoringElements.MainCommandWindow"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Title="Title"
+             Title="Переносит значения параметров из мониторируемых элементов связи"
              Height="500" Width="650" Topmost="True">
     <Grid>
         <Grid.ColumnDefinitions>

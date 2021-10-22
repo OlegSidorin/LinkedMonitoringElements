@@ -16,7 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static LinkedMonitoringElements.CM;
+using static LinkedMonitoringElements.CommonLibrary;
 using Point = Autodesk.Revit.DB.Point;
 using Transform = Autodesk.Revit.DB.Transform;
 
@@ -132,9 +132,9 @@ namespace LinkedMonitoringElements
                 {
                     i = SetParametersFromLinkedFamily(_InstanceViewModel, doc);
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    //MessageBox.Show(ex.ToString());
                 }
                 
                 if (i == 0)
@@ -152,9 +152,9 @@ namespace LinkedMonitoringElements
                     {
                         i += SetParametersFromLinkedFamily(instanceViewModel, doc);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-
+                        //MessageBox.Show(ex.ToString());
                     }
                 }
                 if (i == 0)
@@ -175,7 +175,7 @@ namespace LinkedMonitoringElements
             return "External Left Event";
         }
     }
-    class CM
+    class CommonLibrary
     {
         public static string NormalizeInstanceName(string inputString)
         {
@@ -187,7 +187,7 @@ namespace LinkedMonitoringElements
                 if (last2 == " 2")
                     result = inputString.Remove(l - 2);
             }
-            return result;
+            return result; 
         }
         public static string NormalizeFamilyName(string inputString)
         {
@@ -289,13 +289,27 @@ namespace LinkedMonitoringElements
         }
         public static double GetParameterInLinkedFamilyInstanceAsDouble(FamilyInstance linkedFamilyInstance, string parameterName)
         {
+            double output = 0;
             Parameter parameter = linkedFamilyInstance.LookupParameter(parameterName);
-            return parameter.AsDouble();
+            try
+            {
+                output = parameter.AsDouble();
+            }
+            catch
+            { }
+            return output;
         }
         public static string GetParameterInLinkedFamilyInstanceAsString(FamilyInstance linkedFamilyInstance, string parameterName)
         {
+            string output = "";
             Parameter parameter = linkedFamilyInstance.LookupParameter(parameterName);
-            return parameter.AsString();
+            try
+            {
+                output = parameter.AsString();
+            }
+            catch
+            { }
+            return output;
         }
         public static ElementId GetElementId_OfMonitoredElement(Document linkedDoc, string InstanceName, string FamilyName, XYZ xyz, XYZ shift)
         {

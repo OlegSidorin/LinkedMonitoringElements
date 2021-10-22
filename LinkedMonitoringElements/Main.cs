@@ -33,7 +33,7 @@ namespace LinkedMonitoringElements
             };
             var TechBtn = techPanel.AddItem(MBtnData) as PushButton;
             TechBtn.LargeImage = new BitmapImage(new Uri(Path.GetDirectoryName(DllLocation) + "\\res\\sockets.png", UriKind.Absolute));
-            //8TechBtn.LargeImage = PngImageSource("BatchAddingParameters.res.bap-icon.png");
+            //TechBtn.LargeImage = PngImageSource("BatchAddingParameters.res.bap-icon.png");
 
             return Result.Succeeded;
         }
